@@ -44,9 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
-import kotlin.math.abs
 
 val logger = LoggerFactory.getLogger()
 const val TAG = "MyActivity"
@@ -67,13 +65,13 @@ enum class LayoutType {
 data class Bead(
     val id: Int,
     val color: BeadColor,
-    val side: BeadSide,
+    val side: Seite,
     val index: Int,
     val layout: LayoutType? = null  // Optional: bead-specific layout
 )
 
 enum class BeadColor { RED, BLUE }
-enum class BeadSide { LEFT, RIGHT }
+enum class Seite { LINKS, RECHTS }
 
 @Composable
 fun App() {
@@ -131,8 +129,8 @@ fun App() {
                             delay(2000)
 
                             // 3. Swap the 4 beads on the straight edges - CREATE ANOTHER NEW STATE
-                            // val swappedState = gameState.moveBeads()
-                            // gameState = swappedState
+                            val swappedState = gameState.moveBeads()
+                            gameState = swappedState
 
                             isAnimating = false
                         }
@@ -159,16 +157,16 @@ fun GameStatus(gameState: GameState) {
     val allBeads = gameState.beads
 
     // Count by side AND color
-    val leftRedCount = allBeads.count { it.side == BeadSide.LEFT && it.color == BeadColor.RED }
-    val leftBlueCount = allBeads.count { it.side == BeadSide.LEFT && it.color == BeadColor.BLUE }
-    val rightRedCount = allBeads.count { it.side == BeadSide.RIGHT && it.color == BeadColor.RED }
-    val rightBlueCount = allBeads.count { it.side == BeadSide.RIGHT && it.color == BeadColor.BLUE }
+    val leftRedCount = allBeads.count { it.side == Seite.LINKS && it.color == BeadColor.RED }
+    val leftBlueCount = allBeads.count { it.side == Seite.LINKS && it.color == BeadColor.BLUE }
+    val rightRedCount = allBeads.count { it.side == Seite.RECHTS && it.color == BeadColor.RED }
+    val rightBlueCount = allBeads.count { it.side == Seite.RECHTS && it.color == BeadColor.BLUE }
 
     // DEBUG: Log the actual beads with more details
     LaunchedEffect(gameState) {
         println("DEBUG - Total beads: ${allBeads.size}")
-        println("DEBUG - Left beads: ${allBeads.filter { it.side == BeadSide.LEFT }.size}")
-        println("DEBUG - Right beads: ${allBeads.filter { it.side == BeadSide.RIGHT }.size}")
+        println("DEBUG - Left beads: ${allBeads.filter { it.side == Seite.LINKS }.size}")
+        println("DEBUG - Right beads: ${allBeads.filter { it.side == Seite.RECHTS }.size}")
         println("DEBUG - Left: R=$leftRedCount, B=$leftBlueCount")
         println("DEBUG - Right: R=$rightRedCount, B=$rightBlueCount")
 
@@ -242,246 +240,247 @@ fun GameBoard(
         val height = maxHeight.value
         val textMeasurer = rememberTextMeasurer()
 
-        val leftBeads = gameState.beads.filter { it.side == BeadSide.LEFT }
-        val rightBeads = gameState.beads.filter { it.side == BeadSide.RIGHT }
+        val leftBeads = gameState.beads.filter { it.side == Seite.LINKS }
+        val rightBeads = gameState.beads.filter { it.side == Seite.RECHTS }
 
         // Calculate positions for side-by-side ovals
         val ovalWidth = width * 0.45f
         val ovalHeight = height * 0.9f
 
+        fun DrawScope.RahmenZeichnen(canvasWidth: Float) {
+            drawLine(
+                color = Color.Blue,
+                start = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                end = Offset(canvasWidth * 1f, canvasWidth * 0f),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            drawLine(
+                color = Color.Blue,
+                start = Offset(canvasWidth * 1f, canvasWidth * 0f),
+                end = Offset(canvasWidth * 1f, canvasWidth * 1f),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            drawLine(
+                color = Color.Blue,
+                start = Offset(canvasWidth * 1f, canvasWidth * 1f),
+                end = Offset(canvasWidth * 0f, canvasWidth * 1f),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            drawLine(
+                color = Color.Blue,
+                start = Offset(canvasWidth * 0f, canvasWidth * 1f),
+                end = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                strokeWidth = 2.dp.toPx()
+            )
+        }
+
         Canvas(modifier = Modifier.fillMaxSize()) {
             val canvasWidth = size.width
             val canvasHeight = size.height
 
+            /* Halbkreis nach unten
+            drawArc(
+                color = Color.Red,
+                startAngle = 0f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            /* voller kreis
+            drawArc(
+                color = Color.Red,
+                startAngle = 180f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+            */
+
+            /* Halbkreis links
+            drawArc(
+                color = Color.Red,
+                startAngle = 90f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            /* Halbkreis nach oben
+            drawArc(
+                color = Color.Red,
+                startAngle = 180f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            /* Viertelkreis rechts unten
+            drawArc(
+                color = Color.Red,
+                startAngle = 0f,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            /* 3/4-Kreis, Öffnung rechts oben
+            drawArc(
+                color = Color.Red,
+                startAngle = 0f,
+                sweepAngle = 270f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            /* Halbkreis rechts
+            drawArc(
+                color = Color.Red,
+                startAngle = 270f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(canvasWidth * 0f, canvasWidth * 0f),
+                size = Size(r * 2, r * 2),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+             */
+
+            //RahmenZeichnen(canvasWidth)
+
+            // Radius Perle
+            val rP = canvasWidth / (4 * (1 / sin(15 * PI.toFloat() / 180) + 1))
+            val rBog = rP / sin(15 * PI.toFloat() / 180)
+            val l = 6*rP
+
             // Calculate dimensions
-            val beadDiameter = canvasHeight * 0.12f
-            val straightSectionHeight = beadDiameter * 4f
-            val arcRadius = canvasWidth * 0.15f
 
-            val leftCenter = Offset(canvasWidth * 0.3f, canvasHeight / 2)
-            val rightCenter = Offset(canvasWidth * 0.7f, canvasHeight / 2)
-
-            // Draw the Stadium Shapes
-            drawStadium(leftCenter, straightSectionHeight, arcRadius, Color.LightGray)
-            drawStadium(rightCenter, straightSectionHeight, arcRadius, Color.LightGray)
-
-            // Draw Left side beads
-            leftBeads.forEach { bead ->
-                val beadCount = if (gameState.leftSideLayout == LayoutType.C_SHAPE) 14 else 18
-                val pos = getBeadPositionOnStadium(
-                    index = bead.index,
-                    center = leftCenter,
-                    straightHeight = straightSectionHeight,
-                    radius = arcRadius,
-                    beadCount = beadCount
-                )
-
-                drawBead(bead, pos, textMeasurer)
+            val xp = FloatArray(36)
+            val yp = FloatArray(36)
+            for (i in 0 until 4) {
+                xp[i] = canvasWidth / 2 - rP
+                xp[i+18] = xp[i] + canvasWidth / 2
+                yp[i] = canvasWidth / 2 + 3*rP - i * 2 * rP
+                yp[i+18] = yp[i]
             }
 
-            // Draw Right side beads
-            rightBeads.forEach { bead ->
-                val beadCount = if (gameState.rightSideLayout == LayoutType.C_SHAPE) 14 else 18
-                val pos = getBeadPositionOnStadium(
-                    index = bead.index,
-                    center = rightCenter,
-                    straightHeight = straightSectionHeight,
-                    radius = arcRadius,
-                    beadCount = beadCount
-                )
-
-                drawBead(bead, pos, textMeasurer)
+            for (i in 9 until 13) {
+                xp[i] = rP
+                xp[i+18] = xp[i] + canvasWidth / 2
+                yp[i] = canvasWidth / 2 - 3*rP + (i-9) * 2 * rP
+                yp[i+18] = canvasWidth - 3*rP + (i-18) * 2 * rP
+            }
+            for (i in 4 until 9) {
+                xp[i] = (canvasWidth / 4 + rBog * cos(30 * PI / 180 * (i-3))).toFloat()
+                xp[i+18] = (canvasWidth / 4 * 3  + rBog * cos(30 * PI / 180 * (i-3-18))).toFloat()
+                yp[i] = (canvasWidth / 2 - 3*rP - rBog * sin(30 * PI / 180 * (i-3))).toFloat()
+                yp[i+18] = (canvasWidth / 2 + 3*rP - rBog * sin(30 * PI / 180 * (i-3-18))).toFloat()
             }
 
-            // Draw labels
-            val fontSize = min(16.sp.toPx(), height * 0.04f)
-            val fontSizeSp = fontSize.toSp()
+            for (i in 13 until 18) {
+                xp[i] = (canvasWidth / 4 + rBog * cos((180 + (i-12) * 30) * PI / 180 )).toFloat()
+                xp[i+18] = (canvasWidth / 4 * 3 + rBog * cos((180 + (i-12-18) * 30) * PI / 180 )).toFloat()
+                yp[i] = (canvasWidth / 2 + 3*rP - rBog * sin((180 + (i-12) * 30) * PI / 180 )).toFloat()
+                yp[i+18] = (canvasWidth / 2 + 3*rP - rBog * sin((180 + (i-12-18) * 30) * PI / 180 )).toFloat()
+            }
 
-            // Left label - dynamic based on layout
-            val leftLabel = if (gameState.leftSideLayout == LayoutType.C_SHAPE) "C-Shape" else "Ring"
-            drawText(
-                textMeasurer = textMeasurer,
-                text = leftLabel,
-                topLeft = Offset(
-                    leftCenter.x - ovalWidth * 0.2f,
-                    leftCenter.y - ovalHeight / 2 - height * 0.05f
-                ),
-                style = TextStyle(
-                    color = Color.Gray,
-                    fontSize = fontSizeSp
+            // Perlen 0-15 rot, andere blau
+            for (i in 0 until 35) {
+                if (i in 27..30) { //freie Stellen
+                    continue;
+                }
+                drawCircle(
+                    color = if (i < 16) Color.Red else Color.Blue,
+                    radius = rP,
+                    center = Offset(xp[i], yp[i])
                 )
-            )
+            }
 
-            // Right label - dynamic based on layout
-            val rightLabel = if (gameState.rightSideLayout == LayoutType.C_SHAPE) "C-Shape" else "Ring"
-            drawText(
-                textMeasurer = textMeasurer,
-                text = rightLabel,
-                topLeft = Offset(
-                    rightCenter.x - ovalWidth * 0.15f,
-                    rightCenter.y - ovalHeight / 2 - height * 0.05f
-                ),
-                style = TextStyle(
-                    color = Color.Gray,
-                    fontSize = fontSizeSp
-                )
-            )
+
+
         }
     }
-}
-
-// Helper function to draw a bead with its index
-private fun DrawScope.drawBead(
-    bead: Bead,
-    position: Offset,
-    textMeasurer: TextMeasurer
-) {
-    // Draw the bead
-    drawCircle(
-        color = if (bead.color == BeadColor.RED) Color.Red else Color.Blue,
-        radius = 10.dp.toPx(),
-        center = position
-    )
-
-    // Draw the index text
-    val textLayoutResult = textMeasurer.measure(
-        text = bead.index.toString(),
-        style = TextStyle(color = Color.White, fontSize = 10.sp)
-    )
-
-    drawText(
-        textLayoutResult = textLayoutResult,
-        topLeft = Offset(
-            x = position.x - textLayoutResult.size.width / 2f,
-            y = position.y - textLayoutResult.size.height / 2f
-        )
-    )
 }
 
 // Helper to draw a stadium shape (Straight sides, rounded ends)
-private fun DrawScope.drawStadium(
-    center: Offset,
-    straightHeight: Float,
-    radius: Float,
-    color: Color
+private fun DrawScope.drawOval(
+    seite: Seite,
+    rP: Float,
+    rBog: Float,
+    l: Float
 ) {
-    val topY = center.y - straightHeight / 2
-    val bottomY = center.y + straightHeight / 2
+    val canvasWidth = size.width
+    val canvasHeight = size.height
 
-    // Draw left straight line
-    drawLine(
-        color = color,
-        start = Offset(center.x - radius, topY),
-        end = Offset(center.x - radius, bottomY),
-        strokeWidth = 2.dp.toPx()
-    )
+    val x1 = rP
+    val y1 = canvasWidth / 2 - l / 2 - rBog
 
-    // Draw right straight line
-    drawLine(
-        color = color,
-        start = Offset(center.x + radius, topY),
-        end = Offset(center.x + radius, bottomY),
-        strokeWidth = 2.dp.toPx()
-    )
+    var add = 0f
+    if (seite == Seite.RECHTS) {
+        add = canvasWidth / 2
+    }
 
-    // Draw top arc
+    // Kreis oben
     drawArc(
-        color = color,
+        color = Color.Red,
         startAngle = 180f,
         sweepAngle = 180f,
         useCenter = false,
-        topLeft = Offset(center.x - radius, topY - radius),
-        size = Size(radius * 2, radius * 2),
+        topLeft = Offset(x1 + add, y1),
+        size = Size(rBog * 2, rBog * 2),
         style = Stroke(width = 2.dp.toPx())
     )
 
-    // Draw bottom arc
+    drawLine(
+        color = Color.Red,
+        start = Offset(x1 + add, canvasWidth / 2 - l / 2),
+        end = Offset(x1 + add, canvasWidth / 2 + l / 2),
+        strokeWidth = 2.dp.toPx()
+    )
+
+    drawLine(
+        color = Color.Red,
+        start = Offset(canvasWidth / 2 - rP + add, canvasWidth / 2 - l / 2),
+        end = Offset(canvasWidth / 2 - rP + add, canvasWidth / 2 + l / 2),
+        strokeWidth = 2.dp.toPx()
+    )
+
+    // Kreis unten
     drawArc(
-        color = color,
+        color = Color.Red,
         startAngle = 0f,
         sweepAngle = 180f,
         useCenter = false,
-        topLeft = Offset(center.x - radius, bottomY - radius),
-        size = Size(radius * 2, radius * 2),
+        topLeft = Offset(x1 + add, canvasWidth / 2 + l / 2 - rBog),
+        size = Size(rBog * 2, rBog * 2),
         style = Stroke(width = 2.dp.toPx())
     )
-}
 
-fun getBeadPositionOnStadium(
-    index: Int,
-    center: Offset,
-    straightHeight: Float,
-    radius: Float,
-    beadCount: Int  // New parameter: 14 for C-shape, 18 for ring
-): Offset {
-    val topY = center.y - straightHeight / 2
-    val bottomY = center.y + straightHeight / 2
-
-    return if (beadCount == 14) {
-        // C-shape layout (14 beads)
-        when (index) {
-            in 0..4 -> {
-                // Bottom Arc (0-4) - 5 beads, going from right to left
-                val beadCountArc = 5
-                val angleIncrement = PI.toFloat() / (beadCountArc - 1) // 45 degrees
-                val angle = index * angleIncrement // from 0 to π
-                Offset(center.x + radius * cos(angle), bottomY + radius * sin(angle))
-            }
-            in 5..9 -> {
-                // Left Straight (5-9) - 5 beads, going from bottom to top
-                val beadCountStraight = 5
-                val spacing = straightHeight / (beadCountStraight + 1)
-                val position = (index - 5 + 1) * spacing
-                val y = bottomY - position
-                Offset(center.x - radius, y)
-            }
-            in 10..13 -> {
-                // Top Arc (10-13) - 4 beads, going from left to right
-                val beadCountArc = 4
-                val angleIncrement = PI.toFloat() / (beadCountArc - 1) // 60 degrees
-                val angle = PI.toFloat() + ((index - 10) * angleIncrement)
-                Offset(center.x + radius * cos(angle), topY + radius * sin(angle))
-            }
-            else -> Offset(center.x, center.y)
-        }
-    } else {
-        // Ring layout (18 beads)
-        when (index) {
-            in 0..3 -> {
-                // Left Straight (0-3) - bottom to top
-                val beadCountStraight = 4
-                val progress = index.toFloat() / (beadCountStraight - 1)
-                val adjustedProgress = 0.05f + progress * 0.85f
-                val y = bottomY - (adjustedProgress * straightHeight)
-                Offset(center.x - radius, y)
-            }
-            in 4..7 -> {
-                // Top Arc (4-7) - left to right
-                val beadCountArc = 4
-                val progress = (index - 4).toFloat() / (beadCountArc - 1)
-                val adjustedProgress = 0.1f + progress * 0.8f
-                val angle = PI.toFloat() * (1 + adjustedProgress)
-                Offset(center.x + radius * cos(angle), topY + radius * sin(angle))
-            }
-            in 8..11 -> {
-                // Right Straight (8-11) - top to bottom
-                val beadCountStraight = 4
-                val progress = (index - 8).toFloat() / (beadCountStraight - 1)
-                val adjustedProgress = 0.1f + progress * 0.85f
-                val y = topY + (adjustedProgress * straightHeight)
-                Offset(center.x + radius, y)
-            }
-            in 12..17 -> {
-                // Bottom Arc (12-17) - left to right
-                val beadCountArc = 6
-                val progress = (index - 12).toFloat() / (beadCountArc - 1)
-                val adjustedProgress = 0.05f + progress * 0.9f
-                val angle = PI.toFloat() * adjustedProgress
-                Offset(center.x + radius * cos(angle), bottomY + radius * sin(angle))
-            }
-            else -> Offset(center.x, center.y)
-        }
-    }
 }
 
 @Composable
@@ -595,7 +594,7 @@ fun GameState.rotateRing(z: Int): GameState {
     if (z == 0) return this.copy()
 
     // 1. Identify which side is the ring (based on layout)
-    val ringSide = if (rightSideLayout == LayoutType.RING) BeadSide.RIGHT else BeadSide.LEFT
+    val ringSide = if (rightSideLayout == LayoutType.RING) Seite.RECHTS else Seite.LINKS
 
     // 2. Filter beads on the ring side
     val ringBeadsWithIndices = beads.mapIndexed { index, bead -> index to bead }
@@ -637,12 +636,12 @@ private fun GameState.moveBeads(): GameState {
     val newBeads = beads.toMutableList()
 
     // Determine which side has 18 beads (ring side) and which has 14 (c-side)
-    val leftBeads = beads.count { it.side == BeadSide.LEFT }
-    val rightBeads = beads.count { it.side == BeadSide.RIGHT }
+    val leftBeads = beads.count { it.side == Seite.LINKS }
+    val rightBeads = beads.count { it.side == Seite.RECHTS }
 
     val (ringSide, cSide) = when {
-        leftBeads == 18 && rightBeads == 14 -> Pair(BeadSide.LEFT, BeadSide.RIGHT)
-        rightBeads == 18 && leftBeads == 14 -> Pair(BeadSide.RIGHT, BeadSide.LEFT)
+        leftBeads == 18 && rightBeads == 14 -> Pair(Seite.LINKS, Seite.RECHTS)
+        rightBeads == 18 && leftBeads == 14 -> Pair(Seite.RECHTS, Seite.LINKS)
         else -> return this.copy() // Invalid state, return unchanged
     }
 
@@ -666,84 +665,92 @@ private fun GameState.moveBeads(): GameState {
         return this.copy()
     }
 
-    // Move beads to c-side
+    // Move beads to c-side - place them at the beginning of the straight section (positions 5-8)
     beadsToMove.forEachIndexed { i, (originalIndex, bead) ->
         newBeads[originalIndex] = bead.copy(
             side = cSide,
-            index = cSideBeads.size + i // Start after existing c-side beads
+            index = 5 + i // Place at positions 5, 6, 7, 8 (straight section of C-shape)
         )
     }
 
-    // Reindex remaining ring side beads: they should now have indices 0-13
+    // Reindex remaining ring side beads: shift remaining beads down to fill the gap
     val remainingRingSideBeads = ringSideBeads
         .filter { (_, bead) -> bead.index !in 0..3 }
         .sortedBy { (_, bead) -> bead.index }
 
-    remainingRingSideBeads.forEachIndexed { newIndex, (originalIndex, bead) ->
+    remainingRingSideBeads.forEachIndexed { i, (originalIndex, bead) ->
         newBeads[originalIndex] = bead.copy(
             side = ringSide,
-            index = newIndex // 0-13
+            index = i // 0-13 (14 beads remain on ring side)
         )
     }
 
-    // Reindex ALL c-side beads (original + moved) to 0-17
+    // Reindex ALL c-side beads (original + moved) - maintain C-shape layout
+    // C-shape layout: 0-4 bottom arc, 5-9 straight, 10-13 top arc
     val allCSideBeads = newBeads
         .withIndex()
         .filter { (_, bead) -> bead.side == cSide }
         .sortedBy { (_, bead) -> bead.index }
 
-    allCSideBeads.forEachIndexed { newIndex, (originalIndex, bead) ->
+    // Reindex to maintain proper C-shape ordering
+    allCSideBeads.forEachIndexed { i, (originalIndex, bead) ->
+        // Determine new index based on C-shape layout
+        val newIndex = when {
+            i < 5 -> i // Bottom arc: 0-4
+            i < 14 -> i // Straight + moved beads: 5-13
+            else -> i // Top arc: 14-17
+        }
         newBeads[originalIndex] = bead.copy(
             side = cSide,
-            index = newIndex // 0-17 for all c-side beads
+            index = newIndex
         )
     }
 
     // Swap sides: c-side becomes ring side and vice versa
     return copy(
         beads = newBeads,
-        leftSideLayout = if (ringSide == BeadSide.LEFT) LayoutType.C_SHAPE else LayoutType.RING,
-        rightSideLayout = if (ringSide == BeadSide.LEFT) LayoutType.RING else LayoutType.C_SHAPE
+        leftSideLayout = if (ringSide == Seite.LINKS) LayoutType.C_SHAPE else LayoutType.RING,
+        rightSideLayout = if (ringSide == Seite.LINKS) LayoutType.RING else LayoutType.C_SHAPE
     )
 }
 
 val initialGameState = GameState(
     beads = listOf(
         // Left side beads (C-shape, indices 0-13)
-        Bead(1, BeadColor.RED, BeadSide.LEFT, 0),
-        Bead(2, BeadColor.BLUE, BeadSide.LEFT, 1),
-        Bead(3, BeadColor.RED, BeadSide.LEFT, 2),
-        Bead(4, BeadColor.BLUE, BeadSide.LEFT, 3),
-        Bead(5, BeadColor.RED, BeadSide.LEFT, 4),
-        Bead(6, BeadColor.BLUE, BeadSide.LEFT, 5),
-        Bead(7, BeadColor.RED, BeadSide.LEFT, 6),
-        Bead(8, BeadColor.BLUE, BeadSide.LEFT, 7),
-        Bead(9, BeadColor.RED, BeadSide.LEFT, 8),
-        Bead(10, BeadColor.BLUE, BeadSide.LEFT, 9),
-        Bead(11, BeadColor.RED, BeadSide.LEFT, 10),
-        Bead(12, BeadColor.BLUE, BeadSide.LEFT, 11),
-        Bead(13, BeadColor.RED, BeadSide.LEFT, 12),
-        Bead(14, BeadColor.BLUE, BeadSide.LEFT, 13),
+        Bead(1, BeadColor.RED, Seite.LINKS, 0),
+        Bead(2, BeadColor.BLUE, Seite.LINKS, 1),
+        Bead(3, BeadColor.RED, Seite.LINKS, 2),
+        Bead(4, BeadColor.BLUE, Seite.LINKS, 3),
+        Bead(5, BeadColor.RED, Seite.LINKS, 4),
+        Bead(6, BeadColor.BLUE, Seite.LINKS, 5),
+        Bead(7, BeadColor.RED, Seite.LINKS, 6),
+        Bead(8, BeadColor.BLUE, Seite.LINKS, 7),
+        Bead(9, BeadColor.RED, Seite.LINKS, 8),
+        Bead(10, BeadColor.BLUE, Seite.LINKS, 9),
+        Bead(11, BeadColor.RED, Seite.LINKS, 10),
+        Bead(12, BeadColor.BLUE, Seite.LINKS, 11),
+        Bead(13, BeadColor.RED, Seite.LINKS, 12),
+        Bead(14, BeadColor.BLUE, Seite.LINKS, 13),
 
         // Right side beads (Ring, indices 0-17)
-        Bead(15, BeadColor.RED, BeadSide.RIGHT, 0),
-        Bead(16, BeadColor.BLUE, BeadSide.RIGHT, 1),
-        Bead(17, BeadColor.RED, BeadSide.RIGHT, 2),
-        Bead(18, BeadColor.BLUE, BeadSide.RIGHT, 3),
-        Bead(19, BeadColor.RED, BeadSide.RIGHT, 4),
-        Bead(20, BeadColor.BLUE, BeadSide.RIGHT, 5),
-        Bead(21, BeadColor.RED, BeadSide.RIGHT, 6),
-        Bead(22, BeadColor.BLUE, BeadSide.RIGHT, 7),
-        Bead(23, BeadColor.RED, BeadSide.RIGHT, 8),
-        Bead(24, BeadColor.BLUE, BeadSide.RIGHT, 9),
-        Bead(25, BeadColor.RED, BeadSide.RIGHT, 10),
-        Bead(26, BeadColor.BLUE, BeadSide.RIGHT, 11),
-        Bead(27, BeadColor.RED, BeadSide.RIGHT, 12),
-        Bead(28, BeadColor.BLUE, BeadSide.RIGHT, 13),
-        Bead(29, BeadColor.RED, BeadSide.RIGHT, 14),
-        Bead(30, BeadColor.BLUE, BeadSide.RIGHT, 15),
-        Bead(31, BeadColor.RED, BeadSide.RIGHT, 16),
-        Bead(32, BeadColor.BLUE, BeadSide.RIGHT, 17),
+        Bead(15, BeadColor.RED, Seite.RECHTS, 0),
+        Bead(16, BeadColor.BLUE, Seite.RECHTS, 1),
+        Bead(17, BeadColor.RED, Seite.RECHTS, 2),
+        Bead(18, BeadColor.BLUE, Seite.RECHTS, 3),
+        Bead(19, BeadColor.RED, Seite.RECHTS, 4),
+        Bead(20, BeadColor.BLUE, Seite.RECHTS, 5),
+        Bead(21, BeadColor.RED, Seite.RECHTS, 6),
+        Bead(22, BeadColor.BLUE, Seite.RECHTS, 7),
+        Bead(23, BeadColor.RED, Seite.RECHTS, 8),
+        Bead(24, BeadColor.BLUE, Seite.RECHTS, 9),
+        Bead(25, BeadColor.RED, Seite.RECHTS, 10),
+        Bead(26, BeadColor.BLUE, Seite.RECHTS, 11),
+        Bead(27, BeadColor.RED, Seite.RECHTS, 12),
+        Bead(28, BeadColor.BLUE, Seite.RECHTS, 13),
+        Bead(29, BeadColor.RED, Seite.RECHTS, 14),
+        Bead(30, BeadColor.BLUE, Seite.RECHTS, 15),
+        Bead(31, BeadColor.RED, Seite.RECHTS, 16),
+        Bead(32, BeadColor.BLUE, Seite.RECHTS, 17),
     ),
     leftSideLayout = LayoutType.C_SHAPE,
     rightSideLayout = LayoutType.RING
