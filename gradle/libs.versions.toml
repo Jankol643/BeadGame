@@ -16,6 +16,7 @@ junit = "4.13.2"
 kotlin = "2.3.0"
 material = "1.10.0"
 composeBom = "2026.01.00"
+materialIconsExtended = "1.7.3"
 runtime = "1.10.0"
 ui = "1.10.0"
 uiToolingPreviewVersion = "1.10.0"
@@ -42,6 +43,7 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
 ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "ui" }
 
