@@ -381,18 +381,8 @@ fun GameControls(
                 disabledContentColor = Color.Black
             )
         ) {
-            Text("Shuffle", fontSize = 16.sp)
+            Text("Restart", fontSize = 16.sp)
         }
-    }
-}
-
-@Composable
-private fun NeuStart(neu: Int) {
-    // Initialize with 18 empty slots immediately
-    if (neu == 1) {
-        val farbeL = remember { mutableStateListOf(*Array(18) { "" }) }
-        val farbeR = remember { mutableStateListOf(*Array(18) { "" }) }
-        perlenMischen(farbeL, farbeR)
     }
 }
 
