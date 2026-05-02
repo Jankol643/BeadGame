@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,11 +36,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kmpgradle9migration.composeapp.generated.resources.Res
-import kmpgradle9migration.composeapp.generated.resources.arrow_downward
-import kmpgradle9migration.composeapp.generated.resources.arrow_upward
-import kmpgradle9migration.composeapp.generated.resources.swap_horiz
-import org.jetbrains.compose.resources.painterResource
+import kotlin.concurrent.atomics.AtomicInt
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -55,6 +51,7 @@ fun App() {
     MaterialTheme {
         val scope = rememberCoroutineScope()
         var isAnimating by remember { mutableStateOf(false) }
+        var noGroups by remember { mutableStateOf(0) }
 
         Column(
             modifier = Modifier
@@ -63,14 +60,23 @@ fun App() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             // Game Title
             Text(
-                text = "Perlen farblich sortieren",
+                text = "Sort beads",
                 fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp, top = 32.dp)
+            )
+            Text(
+                text = "till only three groups are left",
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
+            Text("No of groups: $noGroups", fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -123,6 +129,7 @@ fun App() {
                         }
                     }
                 }
+                noGroups = calculateGroups(farbeL, farbeR)
             }
 
             // Game Board
@@ -140,7 +147,7 @@ fun App() {
             GameControls(
                 onMoveUp = { perlenBewegen(1, farbeL, farbeR, farbeLneu, farbeRneu) },
                 onMoveDown = { perlenBewegen(-1, farbeL, farbeR, farbeLneu, farbeRneu) },
-                onMove = { perlenSchieben(farbeL, farbeR, farbeLneu, farbeRneu) },
+                onMove = { noGroups = perlenSchieben(farbeL, farbeR, farbeLneu, farbeRneu) },
                 isAnimating = isAnimating
             )
 
@@ -154,8 +161,8 @@ private fun perlenSchieben(
     farbeL: SnapshotStateList<String>,
     farbeR: SnapshotStateList<String>,
     farbeLneu: Array<String>,
-    farbeRneu: Array<String>
-) {
+    farbeRneu: Array<String>,
+): Int {
     if (farbeL[0] == "x") {
         // rechte Perlen nach links schieben
         rechtePerlenSchieben(farbeR, farbeL)
@@ -163,6 +170,7 @@ private fun perlenSchieben(
         // linke Perlen nach rechts schieben
         linkePerlenSchieben(farbeL, farbeR)
     }
+    return calculateGroups(farbeL, farbeR)
 }
 
 @Composable
@@ -222,7 +230,7 @@ fun GameBoard(
             val canvasWidth = size.width
             val canvasHeight = size.height
 
-            rahmenZeichnen(canvasWidth)
+            //rahmenZeichnen(canvasWidth)
 
             // Radius Perle
             val rP = canvasWidth / (4 * (1 / sin(15 * PI.toFloat() / 180) + 1))
@@ -236,28 +244,6 @@ fun GameBoard(
             val xpl = FloatArray(18)
             val xpr = FloatArray(18)
             val yp = FloatArray(18)
-
-            /*
-
-            for (i in 0 .. 15) {
-                farbeL[i] = 'r'
-            }
-            farbeL[16] = 'b'
-            farbeL[17] = 'b'
-            for (i in 0 .. 17) {
-                if (i in 9 .. 12) {
-                    farbeR[i] = 'x'
-                }
-                farbeR[i] = 'b'
-            }
-            val farbeLneu = CharArray(18)
-            val farbeRneu = CharArray(18)
-
-            for (k in 0..1000) {
-                perlenMischen(farbeL, farbeR, farbeLneu, farbeRneu)
-            }
-
-             */
 
             // Positionen berechnen
             for (i in 0..3) {
@@ -359,19 +345,18 @@ private fun perlenBewegen(
 ) {
     if (direction == 1) { // Counter-clockwise
         if (farbeL[0] == "x") { // rechts drehen
-            rotieren(1, farbeRneu, farbeR)
+            rotieren(-1, farbeRneu, farbeR)
         } else {
             rotieren(1, farbeLneu, farbeL)
         }
     } else if (direction == -1) { // Clockwise
         if (farbeL[0] == "x") { // rechts drehen
-            rotieren(-1, farbeRneu, farbeR)
+            rotieren(1, farbeRneu, farbeR)
         } else {
             rotieren(-1, farbeLneu, farbeL)
         }
     }
 }
-
 
 @Composable
 fun GameControls(
@@ -384,23 +369,14 @@ fun GameControls(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Move ring beads by Z positions:", fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row {
             Button(onClick = onMoveUp, enabled = !isAnimating) {
-                Icon(
-                    painter = painterResource(Res.drawable.arrow_upward),
-                    contentDescription = "Hoch"
-                )
+                Text("...Up...", fontSize = 16.sp)
             }
             Button(onClick = onMoveDown, enabled = !isAnimating) {
-                Icon(
-                    painter = painterResource(Res.drawable.arrow_downward),
-                    contentDescription = "Runter"
-                )
+                Text(".Down.", fontSize = 16.sp)
             }
-        }
     }
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -411,14 +387,20 @@ fun GameControls(
     ) {
         Button(
             onClick = onMove,
-            enabled = !isAnimating
+            enabled = !isAnimating,
+            colors = ButtonColors(
+                containerColor = Color.Green,
+                contentColor = Color.Black,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.Black
+            )
         ) {
-                Icon(
-                    painter = painterResource(Res.drawable.swap_horiz),
-                    contentDescription = "Links/Rechts"
-                )
+//                Icon(
+//                    painter = painterResource(Res.drawable.swap_horiz),
+//                    contentDescription = "Links/Rechts"
+//                )
             Spacer(Modifier.width(8.dp))
-            Text("Move")
+            Text("Left / Right", fontSize = 16.sp)
         }
 
         // ... Reset Button analog mit Res.drawable.refresh
@@ -575,30 +557,77 @@ drawArc(
 
 private fun DrawScope.rahmenZeichnen(canvasWidth: Float) {
     drawLine(
-        color = Color.Blue,
+        color = Color.Black,
         start = Offset(canvasWidth * 0f, canvasWidth * 0f),
         end = Offset(canvasWidth * 1f, canvasWidth * 0f),
         strokeWidth = 2.dp.toPx()
     )
 
     drawLine(
-        color = Color.Blue,
+        color = Color.Black,
         start = Offset(canvasWidth * 1f, canvasWidth * 0f),
         end = Offset(canvasWidth * 1f, canvasWidth * 1f),
         strokeWidth = 2.dp.toPx()
     )
 
     drawLine(
-        color = Color.Blue,
+        color = Color.Black,
         start = Offset(canvasWidth * 1f, canvasWidth * 1f),
         end = Offset(canvasWidth * 0f, canvasWidth * 1f),
         strokeWidth = 2.dp.toPx()
     )
 
     drawLine(
-        color = Color.Blue,
+        color = Color.Black,
         start = Offset(canvasWidth * 0f, canvasWidth * 1f),
         end = Offset(canvasWidth * 0f, canvasWidth * 0f),
         strokeWidth = 2.dp.toPx()
     )
+}
+
+private fun calculateGroups(farbeL: SnapshotStateList<String>, farbeR: SnapshotStateList<String>): Int {
+    var noGroups = 0
+    if (farbeL[0] == "x") { // Ring ist rechts
+        // rechte Farbgruppen zählen
+        for (i in 1..17) {
+            if (farbeR[i] !== farbeR[i-1]) {
+                noGroups++
+            }
+        }
+        if (farbeR[17] !== farbeR[0]) {
+            noGroups++
+        }
+        // linke Farbgruppen zählen
+        for (i in 5..17) {
+            if (farbeL[i] !== farbeL[i-1]) {
+                noGroups++
+            }
+        }
+        noGroups++
+    } else { // Ring ist links
+        // linke Farbgruppen zählen
+        for (i in 1..17) {
+            if (farbeL[i] !== farbeL[i-1]) {
+                noGroups++
+            }
+        }
+        if (farbeL[17] !== farbeL[0]) {
+            noGroups++
+        }
+        // rechte Farbgruppen zählen
+        for (i in 1..9) {
+            if (farbeR[i] !== farbeR[i-1]) {
+                noGroups++
+            }
+        }
+        for (i in 14..17) {
+            if (farbeR[i] !== farbeR[i-1]) {
+                noGroups++
+            }
+        }
+        if (farbeR[17] !== farbeR[0]) {
+            noGroups++
+        }
+    }
+    return noGroups
 }
