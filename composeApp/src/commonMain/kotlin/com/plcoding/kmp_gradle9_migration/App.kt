@@ -6,13 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -88,48 +87,12 @@ fun App() {
             val farbeLneu = remember { Array(18) { "" } }
             val farbeRneu = remember { Array(18) { "" } }
 
+            fun restartGame() {
+                noGroups = perlenMischen(farbeL, farbeR)
+            }
+
             LaunchedEffect(Unit) {
-                // Only initialize if not already done (checking first slot)
-                if (farbeL[0] == "") {
-                    var anzahlRot = 16
-                    var anzahlBlau = 16
-
-                    // Linkes Oval initialisieren
-                    for (i in 0..17) {
-                        val gesamt = anzahlRot + anzahlBlau
-                        if (gesamt > 0) {
-                            val z = (1..gesamt).random()
-                            if (z <= anzahlRot) {
-                                anzahlRot--
-                                farbeL[i] = "rot" // Direct index assignment
-                            } else {
-                                anzahlBlau--
-                                farbeL[i] = "blau"
-                            }
-                        }
-                    }
-
-                    // Rechtes Oval initialisieren
-                    for (i in 0..17) {
-                        if (i in 9..12) {
-                            farbeR[i] = "x"
-                            continue
-                        }
-
-                        val gesamt = anzahlRot + anzahlBlau
-                        if (gesamt > 0) {
-                            val z = (1..gesamt).random()
-                            if (z <= anzahlRot) {
-                                anzahlRot--
-                                farbeR[i] = "rot"
-                            } else {
-                                anzahlBlau--
-                                farbeR[i] = "blau"
-                            }
-                        }
-                    }
-                }
-                noGroups = calculateGroups(farbeL, farbeR)
+                restartGame()
             }
 
             // Game Board
@@ -141,13 +104,14 @@ fun App() {
                 farbeR
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             // Controls
             GameControls(
                 onMoveUp = { perlenBewegen(1, farbeL, farbeR, farbeLneu, farbeRneu) },
                 onMoveDown = { perlenBewegen(-1, farbeL, farbeR, farbeLneu, farbeRneu) },
                 onMove = { noGroups = perlenSchieben(farbeL, farbeR, farbeLneu, farbeRneu) },
+                onShuffle = { restartGame() },
                 isAnimating = isAnimating
             )
 
@@ -363,7 +327,8 @@ fun GameControls(
     onMove: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    isAnimating: Boolean = false
+    isAnimating: Boolean = false,
+    onShuffle: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -371,15 +336,15 @@ fun GameControls(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-            Button(onClick = onMoveUp, enabled = !isAnimating) {
-                Text("...Up...", fontSize = 16.sp)
+            Button(onClick = onMoveUp, enabled = !isAnimating, contentPadding = PaddingValues(horizontal = 35.dp)) {
+                Text("Up 1", fontSize = 16.sp)
             }
             Button(onClick = onMoveDown, enabled = !isAnimating) {
-                Text(".Down.", fontSize = 16.sp)
+                Text("Down 1", fontSize = 16.sp)
             }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(24.dp))
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -395,16 +360,84 @@ fun GameControls(
                 disabledContentColor = Color.Black
             )
         ) {
-//                Icon(
-//                    painter = painterResource(Res.drawable.swap_horiz),
-//                    contentDescription = "Links/Rechts"
-//                )
-            Spacer(Modifier.width(8.dp))
-            Text("Left / Right", fontSize = 16.sp)
+            Text("Transfer 4", fontSize = 16.sp)
         }
 
-        // ... Reset Button analog mit Res.drawable.refresh
     }
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Button(
+            onClick = onShuffle,
+            enabled = !isAnimating,
+            colors = ButtonColors(
+                containerColor = Color.Yellow,
+                contentColor = Color.Black,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.Black
+            )
+        ) {
+            Text("Shuffle", fontSize = 16.sp)
+        }
+    }
+}
+
+@Composable
+private fun NeuStart(neu: Int) {
+    // Initialize with 18 empty slots immediately
+    if (neu == 1) {
+        val farbeL = remember { mutableStateListOf(*Array(18) { "" }) }
+        val farbeR = remember { mutableStateListOf(*Array(18) { "" }) }
+        perlenMischen(farbeL, farbeR)
+    }
+}
+
+private fun perlenMischen(
+    farbeL: SnapshotStateList<String>,
+    farbeR: SnapshotStateList<String>,
+): Int {
+        var anzahlRot = 16
+        var anzahlBlau = 16
+
+        // Linkes Oval initialisieren
+        for (i in 0..17) {
+            val gesamt = anzahlRot + anzahlBlau
+            if (gesamt > 0) {
+                val z = (1..gesamt).random()
+                if (z <= anzahlRot) {
+                    anzahlRot--
+                    farbeL[i] = "rot" // Direct index assignment
+                } else {
+                    anzahlBlau--
+                    farbeL[i] = "blau"
+                }
+            }
+        }
+
+        // Rechtes Oval initialisieren
+        for (i in 0..17) {
+            if (i in 9..12) {
+                farbeR[i] = "x"
+                continue
+            }
+
+            val gesamt = anzahlRot + anzahlBlau
+            if (gesamt > 0) {
+                val z = (1..gesamt).random()
+                if (z <= anzahlRot) {
+                    anzahlRot--
+                    farbeR[i] = "rot"
+                } else {
+                    anzahlBlau--
+                    farbeR[i] = "blau"
+                }
+            }
+        }
+    return calculateGroups(farbeL, farbeR)
 }
 
 // Helper to draw a stadium shape (Straight sides, rounded ends)
