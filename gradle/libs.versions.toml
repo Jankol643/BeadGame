@@ -1,8 +1,5 @@
 [versions]
 agp = "9.0.0"
-android-compileSdk = "36"
-android-minSdk = "24"
-android-targetSdk = "36"
 androidx-activity = "1.12.2"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.17.0"
@@ -20,6 +17,7 @@ materialIconsExtended = "1.7.3"
 runtime = "1.10.0"
 ui = "1.10.0"
 uiToolingPreviewVersion = "1.10.0"
+androidApplication = { id = "com.android.application", version.ref = "agp" }
 
 [libraries]
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
