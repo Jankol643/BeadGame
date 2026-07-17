@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.plcoding.kmp_gradle9_migration.android"
+    namespace = "com.kolnberger.beadsgame.android"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.plcoding.kmp_gradle9_migration"
+        applicationId = "com.kolnberger.beadsgame"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

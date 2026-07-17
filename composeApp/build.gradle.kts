@@ -12,7 +12,7 @@ kotlin {
     androidLibrary {
         compileSdk = 36
         minSdk = 26
-        namespace = "com.plcoding.kmp_gradle9_migration"
+        namespace = "com.kolnberger.beadsgame"
         experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
     }
 

@@ -3,7 +3,7 @@
     xmlns:tools="http://android.com">
 
     <application
-        android:name="com.plcoding.kmp_gradle9_migration.MainApplication"
+        android:name="com.kolnberger.beadsgame.MainApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -17,12 +17,12 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.plcoding.kmp_gradle9_migration.AppContextInitializer"
+                android:name="com.kolnberger.beadsgame.AppContextInitializer"
                 android:value="androidx.startup" />
         </provider>
 
         <activity
-            android:name="com.plcoding.androidapp.MainActivity"
+            android:name="com.kolnberger.beadsgame.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
